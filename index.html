@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>พรรณนาสี </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(-45deg, #0f172a, #1e293b, #334155, #13213c);
+            background-size: 400% 400%;
+            animation: gradient-animation 20s ease infinite;
+            overflow: hidden;
+        }
+
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .vignette-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0) 70%, rgba(0,0,0,0.7) 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        @keyframes move-stars {
+            from { transform: translateY(0); }
+            to { transform: translateY(-2000px); }
+        }
+
+        .stars-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .stars, .stars2, .stars3 {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 200%;
+            display: block;
+            background: transparent;
+        }
+
+        .stars {
+            background-image: 
+                radial-gradient(1px 1px at 10% 20%, white, transparent),
+                radial-gradient(1px 1px at 80% 30%, white, transparent),
+                radial-gradient(1px 1px at 50% 70%, white, transparent),
+                radial-gradient(1px 1px at 25% 90%, white, transparent),
+                radial-gradient(1px 1px at 90% 85%, white, transparent),
+                radial-gradient(1px 1px at 5% 55%, white, transparent);
+            background-size: 1000px 1000px;
+            animation: move-stars 200s linear infinite;
+        }
+        
+        .stars2 {
+            background-image: 
+                radial-gradient(2px 2px at 15% 50%, white, transparent),
+                radial-gradient(2px 2px at 60% 10%, white, transparent),
+                radial-gradient(2px 2px at 40% 80%, white, transparent),
+                radial-gradient(2px 2px at 75% 60%, white, transparent),
+                radial-gradient(2px 2px at 85% 5%, white, transparent);
+            background-size: 1200px 1200px;
+            animation: move-stars 120s linear infinite;
+        }
+
+        .stars3 {
+            background-image: 
+                radial-gradient(3px 3px at 5% 15%, white, transparent),
+                radial-gradient(3px 3px at 95% 45%, white, transparent),
+                radial-gradient(3px 3px at 55% 95%, white, transparent);
+            background-size: 1500px 1500px;
+            animation: move-stars 70s linear infinite;
+        }
+
+        .palette-container-wrapper {
+            perspective: 2000px;
+        }
+
+        .palette-color {
+            opacity: 0;
+            transform: translateY(30px);
+            transform-style: preserve-3d;
+            transition: opacity 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.2s linear;
+        }
+
+        .palette-color::before { 
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle 180px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.4), transparent);
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity 0.2s linear;
+            z-index: 1;
+        }
+
+        .palette-color:hover::before {
+            opacity: 1;
+        }
+        
+        .palette-color.visible {
+            opacity: 1;
+            transform: translateY(0) perspective(1000px) rotateY(var(--rotate-y, 0deg)) rotateX(var(--rotate-x, 0deg));
+        }
+        
+        .palette-color .color-info-wrapper {
+            transform: translateZ(30px); 
+        }
+
+
+        .copy-feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.7);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        .copied .copy-feedback {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .loader {
+            border: 4px solid rgba(255,255,255,0.2);
+            border-top: 4px solid #818cf8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #word-input::placeholder {
+            transition: all 0.3s ease;
+        }
+        #word-input:focus::placeholder {
+            opacity: 0.5;
+            transform: translateY(-5px);
+        }
+        #about-modal {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        #about-modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #about-modal-content {
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        #about-modal.visible #about-modal-content {
+            transform: scale(1);
+        }
+
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col items-center justify-center">
+
+    <div class="stars-container">
+        <div class="stars"></div>
+        <div class="stars2"></div>
+        <div class="stars3"></div>
+    </div>
+    <div class="vignette-overlay"></div>
+
+    <button id="about-button" class="fixed top-6 right-6 z-30 p-2 rounded-full text-gray-400 bg-gray-800/50 hover:bg-gray-700 hover:text-white transition-all duration-200">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-help-circle"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+    </button>
+    
+    <div class="w-full max-w-4xl text-center relative z-10 p-4">
+        <header class="mb-8 relative">
+            <h1 class="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 text-transparent bg-clip-text mb-2">
+                พรรณนาสี 🎨
+            </h1>
+        </header>
+
+        <main class="w-full">
+            <form id="palette-form" class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+                <input 
+                    type="text" 
+                    id="word-input"
+                    placeholder="ลองพิมพ์คำว่า 'ดอกกุหลาบ', 'เซกโลโซ', 'โมเดิร์น'..."
+                    class="w-full sm:w-2/3 md:w-1/2 px-6 py-4 bg-gray-800/80 backdrop-blur-sm border-2 border-gray-700 rounded-full text-lg text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all duration-300"
+                >
+                <button 
+                    type="submit"
+                    class="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-indigo-600 text-white font-semibold text-lg rounded-full hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/50 transform hover:scale-105 transition-all duration-300 shadow-lg"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <span>สร้างสี</span>
+                </button>
+            </form>
+            
+            <div class="flex flex-wrap justify-center gap-2 mb-12">
+                <span class="text-gray-400">ตัวอย่าง:</span>
+                <button class="example-word text-gray-300 bg-gray-800/50 px-3 py-1 rounded-full text-sm hover:bg-gray-700 transition">สนธยา</button>
+                <button class="example-word text-gray-300 bg-gray-800/50 px-3 py-1 rounded-full text-sm hover:bg-gray-700 transition">ทะเลลึก</button>
+                <button class="example-word text-gray-300 bg-gray-800/50 px-3 py-1 rounded-full text-sm hover:bg-gray-700 transition">ความเหงา</button>
+                <button class="example-word text-gray-300 bg-gray-800/50 px-3 py-1 rounded-full text-sm hover:bg-gray-700 transition">ลึกลับ</button>
+            </div>
+
+            <div id="loading" class="hidden flex justify-center items-center my-8">
+                <div class="loader"></div>
+                <p class="ml-4 text-lg text-gray-400">กำลังสร้างสรรค์ชุดสี...</p>
+            </div>
+            <div id="error" class="hidden text-red-400 text-lg my-8"></div>
+            <div class="palette-container-wrapper">
+                <div id="palette-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
+                    <!-- Color palettes will be injected here -->
+                </div>
+            </div>
+        </main>
+        
+        <footer class="mt-16 text-gray-500 text-sm">
+            <p>สร้างสรรค์ด้วยแรงบันดาลใจจากภาษาและศิลปะ</p>
+        </footer>
+    </div>
+
+    <!-- About Modal -->
+    <div id="about-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div id="about-modal-content" class="bg-gray-800/80 border border-gray-700 rounded-2xl max-w-lg w-full p-8 shadow-2xl relative">
+            <button id="close-modal-button" class="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+            <h2 class="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-500 text-transparent bg-clip-text">เกี่ยวกับ พรรณนาสี</h2>
+            <p class="text-gray-300 mb-2">
+                <strong>พรรณนาสี (Phannana Sii)</strong> คือเครื่องมือที่แปลง "คำไทย" ให้กลายเป็นชุดสี (Color Palette)ที่โดดเด่นและสวยงาม
+            </p>
+            <p class="text-gray-300">
+                เพียงแค่พิมพ์คำต่างๆเช่นคำที่สื่อถึงอารมณ์, สิ่งของ, หรือบรรยากาศ  AI ของเราจะทำการตีความและสร้างสรรค์ชุดสี 5 สีที่ไม่ซ้ำใคร พร้อมชื่อเรียกที่แปลกใหม่ เพื่อให้คุณได้นำไปใช้ในงานออกแบบ, งานศิลปะ, หรือโปรเจกต์สร้างสรรค์ต่างๆ ได้ทันที
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('palette-form');
+        const input = document.getElementById('word-input');
+        const paletteContainer = document.getElementById('palette-container');
+        const loadingIndicator = document.getElementById('loading');
+        const errorContainer = document.getElementById('error');
+        const exampleWords = document.querySelectorAll('.example-word');
+        const aboutButton = document.getElementById('about-button');
+        const aboutModal = document.getElementById('about-modal');
+        const closeModalButton = document.getElementById('close-modal-button');
+
+        const callGeminiApi = async (prompt) => {
+            loadingIndicator.classList.remove('hidden');
+            paletteContainer.innerHTML = '';
+            errorContainer.classList.add('hidden');
+
+            const apiKey = "AIzaSyC1rUO-FeXxy1OdzYkRNG9Fh1My_gcVSXA";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const systemPrompt = "คุณคือผู้เชี่ยวชาญด้านทฤษฎีสีและนักสร้างสรรค์จานสี (Color Palette) งานของคุณคือการสร้างชุดสีที่สวยงามและมีความหมาย 5 สี จากคำหรือวลีภาษาไทยที่สื่อถึงอารมณ์ วัตถุ หรือฉากต่างๆ โดยแต่ละสีต้องมีรหัสสีฐานสิบหก (Hex Code) และชื่อสีภาษาไทยที่สื่อความหมายได้ดี ตอบกลับเป็นออบเจ็กต์ JSON ตาม schema ที่กำหนดเท่านั้น ห้ามมีข้อความอื่นนอกเหนือจาก JSON";
+
+            const payload = {
+                contents: [{ parts: [{ text: `สร้างชุดสีจากคำว่า: "${prompt}"` }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            palette: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        hex: { type: "STRING", description: "รหัสสีแบบ hex เช่น #FFFFFF" },
+                                        name: { type: "STRING", description: "ชื่อสีภาษาไทยที่สื่อความหมาย" }
+                                    },
+                                    required: ["hex", "name"]
+                                }
+                            }
+                        },
+                        required: ["palette"]
+                    }
+                }
+            };
+            
+            let attempts = 0;
+            const maxAttempts = 3;
+            while (attempts < maxAttempts) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    const candidate = result.candidates?.[0];
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        const parsedJson = JSON.parse(candidate.content.parts[0].text);
+                        renderPalette(parsedJson.palette);
+                    } else {
+                        throw new Error("ไม่พบข้อมูลสีในผลลัพธ์ที่ได้");
+                    }
+                    
+                    loadingIndicator.classList.add('hidden');
+                    return;
+
+                } catch (err) {
+                    attempts++;
+                    console.error(`Attempt ${attempts} failed:`, err);
+                    if (attempts >= maxAttempts) {
+                        showError("เกิดข้อผิดพลาดในการสร้างชุดสี โปรดลองใหม่อีกครั้ง");
+                        loadingIndicator.classList.add('hidden');
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempts)));
+                    }
+                }
+            }
+        };
+
+        const renderPalette = (palette) => {
+            paletteContainer.innerHTML = '';
+            palette.forEach((color, index) => {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'palette-color relative flex flex-col items-center justify-end h-64 md:h-80 rounded-2xl shadow-lg cursor-pointer p-4 text-center overflow-hidden group';
+                colorDiv.style.backgroundColor = color.hex;
+                
+                const colorInfoWrapper = document.createElement('div');
+                colorInfoWrapper.className = 'color-info-wrapper w-full';
+
+                const colorInfo = document.createElement('div');
+                colorInfo.className = 'bg-black/50 backdrop-blur-md p-3 rounded-xl w-full transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out';
+                
+                const colorName = document.createElement('p');
+                colorName.className = 'font-semibold text-white truncate text-base';
+                colorName.textContent = color.name;
+                
+                const colorHex = document.createElement('p');
+                colorHex.className = 'text-gray-300 font-mono text-sm';
+                colorHex.textContent = color.hex.toUpperCase();
+                
+                const copyFeedback = document.createElement('div');
+                copyFeedback.className = 'copy-feedback';
+                copyFeedback.textContent = 'คัดลอกแล้ว!';
+                
+                colorInfo.appendChild(colorName);
+                colorInfo.appendChild(colorHex);
+                colorInfoWrapper.appendChild(colorInfo);
+                colorDiv.appendChild(colorInfoWrapper);
+                colorDiv.appendChild(copyFeedback);
+                colorDiv.addEventListener('mousemove', (e) => {
+                    const rect = colorDiv.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const width = rect.width;
+                    const height = rect.height;
+
+                    const rotateY = -1 * ((x - width / 2) / (width / 2)) * 15; // Max 15 deg
+                    const rotateX = ((y - height / 2) / (height / 2)) * 15; // Max 15 deg
+                    
+                    const mouseX = (x / width) * 100;
+                    const mouseY = (y / height) * 100;
+
+                    colorDiv.style.setProperty('--rotate-x', `${rotateX}deg`);
+                    colorDiv.style.setProperty('--rotate-y', `${rotateY}deg`);
+                    colorDiv.style.setProperty('--mouse-x', `${mouseX}%`);
+                    colorDiv.style.setProperty('--mouse-y', `${mouseY}%`);
+                });
+
+                colorDiv.addEventListener('mouseleave', () => {
+                    colorDiv.style.setProperty('--rotate-x', '0deg');
+                    colorDiv.style.setProperty('--rotate-y', '0deg');
+                });
+
+                colorDiv.addEventListener('click', () => copyToClipboard(color.hex, colorDiv));
+                
+                paletteContainer.appendChild(colorDiv);
+
+                setTimeout(() => {
+                    colorDiv.classList.add('visible');
+                }, index * 120);
+            });
+        };
+        
+        const showError = (message) => {
+            errorContainer.textContent = message;
+            errorContainer.classList.remove('hidden');
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const word = input.value.trim();
+            if (word) {
+                callGeminiApi(word);
+            }
+        });
+
+        exampleWords.forEach(button => {
+            button.addEventListener('click', () => {
+                const word = button.textContent;
+                input.value = word;
+                callGeminiApi(word);
+            });
+        });
+
+        const copyToClipboard = (text, element) => {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            element.classList.add('copied');
+            setTimeout(() => {
+                element.classList.remove('copied');
+            }, 1500);
+        };
+        aboutButton.addEventListener('click', () => {
+            aboutModal.classList.remove('hidden');
+            setTimeout(() => {
+                aboutModal.classList.add('visible');
+            }, 10);
+        });
+
+        const closeModal = () => {
+            aboutModal.classList.remove('visible');
+            setTimeout(() => {
+                aboutModal.classList.add('hidden');
+            }, 300);
+        }
+
+        closeModalButton.addEventListener('click', closeModal);
+        aboutModal.addEventListener('click', (e) => {
+            if (e.target === aboutModal) {
+                closeModal();
+            }
+        });
+
+    </script>
+</body>
+</html>
+
