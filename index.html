@@ -32,7 +32,7 @@ import { getAnalytics } from "firebase/analytics";
 const firebaseConfig = {
   apiKey: "AIzaSyCbn-_PjumwqwN52pOrGa_JE6p71pV8-7c",
   authDomain: "irin-c7b26.firebaseapp.com",
-  databaseURL: "https://console.firebase.google.com/u/0/project/irin-c7b26/database/irin-c7b26-default-rtdb/data/~2",
+  databaseURL: "https://irin-c7b26-default-rtdb.firebaseio.com",
   projectId: "irin-c7b26",
   storageBucket: "irin-c7b26.firebasestorage.app",
   messagingSenderId: "700968943191",
@@ -43,7 +43,26 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+
+   function sendMessage() {
+    const text = document.getElementById('msgInput').value;
+    if(text.trim() === "") return alert("กรุณาพิมพ์ข้อความก่อน!");
+
+    // ส่งข้อมูลไปที่ Firebase (ใช้ตัวแปร app ที่คุณสร้างไว้ในบรรทัด 44)
+    const database = firebase.database(); 
+    database.ref('messages').push({
+        content: text,
+        timestamp: Date.now()
+    }).then(() => {
+        alert("ส่งข้อความสำเร็จแล้ว!");
+        document.getElementById('msgInput').value = "";
+    }).catch((error) => {
+        alert("เกิดข้อผิดพลาด: " + error.message);
+    });
+} 
     </script>
+    
 </body>
 </html>
+
 
